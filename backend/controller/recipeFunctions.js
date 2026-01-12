@@ -6,17 +6,25 @@ const mongoose = require('mongoose');
 const PROFIT_MARGIN = 2;
 const AVERAGE_TIME_PER_INSTRUCTION = 5;
 
+async function getIngredientCollection() {
+  const db = mongoose.connection;
+  const cols = await db.db.listCollections().toArray();
+  const names = cols.map(c => c.name);
+  if (names.includes('ingredient')) return db.collection('ingredient');
+  if (names.includes('ingredients')) return db.collection('ingredients');
+  // fallback
+  return db.collection('ingredient');
+}
+
 // OCP: Can be extended with different calculation strategies
 const calculateCosts = async (ingredients, servings) => {
   let totalCost = 0;
 
-  const db = mongoose.connection;
-  const ingredientCollection = db.collection('ingredient');
+  const ingredientCollection = await getIngredientCollection();
 
   for (const ingredient of ingredients) {
-    const ingredientData = await ingredientCollection.findOne({ 
-      productId: ingredient.productId,
-      isActive: true 
+    const ingredientData = await ingredientCollection.findOne({
+      productId: ingredient.productId
     });
 
     if (!ingredientData) {
@@ -43,15 +51,12 @@ const calculateCosts = async (ingredients, servings) => {
 };
 
 const enrichIngredientsWithData = async (ingredients) => {
-  const db = mongoose.connection;
-  const ingredientCollection = db.collection('ingredient');
-
+  const ingredientCollection = await getIngredientCollection();
   const enrichedIngredients = [];
 
   for (const ingredient of ingredients) {
     const ingredientData = await ingredientCollection.findOne({ 
-      productId: ingredient.productId,
-      isActive: true 
+      productId: ingredient.productId
     });
 
     if (!ingredientData) {

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const recipeRoutes = require('./routes/recipeRoutes');
+const ingredientRoutes = require('./routes/ingredientRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3007;
@@ -25,6 +26,7 @@ db.once('open', () => {
 });
 
 app.use('/recipes', recipeRoutes);
+app.use('/ingredients', ingredientRoutes);
 
 app.get('/', (req, res) => {
   res.json({ 
