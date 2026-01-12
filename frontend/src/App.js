@@ -1,34 +1,89 @@
-import React, { useState } from 'react';
-import { Container, Paper, Tabs, Tab, Box, Typography } from '@mui/material';
-import RecipeListView from './view/recipeListView';
-import RecipeFormView from './view/recipeFormView';
+import React, { useState, useEffect } from 'react';
+import { recipeService } from './services/recipeService';
+import RecipeList from './views/RecipeList';
+import RecipeForm from './views/RecipeForm';
+import RecipeDetail from './views/RecipeDetail';
 
-export default function App() {
-  const [tab, setTab] = useState(0);
-  const [editing, setEditing] = useState(null);
+function App() {
+  const [recipes, setRecipes] = useState([]);
+  const [view, setView] = useState('list');
+  const [selected, setSelected] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const openCreate = () => { setEditing(null); setTab(1); };
-  const handleEdit = (recipe) => { setEditing(recipe); setTab(1); };
-  const handleSaved = () => { setTab(0); setEditing(null); };
+  const loadRecipes = async () => {
+    setLoading(true);
+    try {
+      const res = await recipeService.getAll();
+      setRecipes(res.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadRecipes();
+  }, []);
+
+  const handleCreate = async (data) => {
+    await recipeService.create(data);
+    await loadRecipes();
+    setView('list');
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Delete this recipe?')) {
+      await recipeService.delete(id);
+      await loadRecipes();
+      setView('list');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="loading">
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Paper sx={{ p: 3, mb: 3 }} elevation={3}>
-        <Typography variant="h4" align="center" gutterBottom>Recipe Practice</Typography>
-        <Typography variant="body1" align="center">Manage recipes — pastel theme</Typography>
-      </Paper>
+    <div className="container">
+      <div className="header">
+        <h1 className="title">Recipe Manager</h1>
+        {view === 'list' && (
+          <button onClick={() => setView('create')} className="btn btn-primary">
+            Create Recipe
+          </button>
+        )}
+      </div>
 
-      <Paper sx={{ p:2 }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-          <Tab label="List" />
-          <Tab label={editing ? 'Edit' : 'Create'} />
-        </Tabs>
+      {view === 'list' && (
+        <RecipeList
+          recipes={recipes}
+          onSelect={(r) => {
+            setSelected(r);
+            setView('detail');
+          }}
+        />
+      )}
 
-        <Box sx={{ mt:2 }}>
-          {tab === 0 && <RecipeListView onEdit={handleEdit} />}
-          {tab === 1 && <RecipeFormView recipe={editing} onSaved={handleSaved} onCancel={() => setTab(0)} />}
-        </Box>
-      </Paper>
-    </Container>
+      {view === 'create' && (
+        <RecipeForm
+          onSubmit={handleCreate}
+          onCancel={() => setView('list')}
+        />
+      )}
+
+      {view === 'detail' && selected && (
+        <RecipeDetail
+          recipe={selected}
+          onDelete={() => handleDelete(selected._id)}
+          onClose={() => setView('list')}
+        />
+      )}
+    </div>
   );
 }
+
+export default App;

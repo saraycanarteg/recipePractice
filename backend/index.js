@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 require('dotenv').config();
 
 const recipeRoutes = require('./routes/recipeRoutes');
@@ -8,6 +9,7 @@ const ingredientRoutes = require('./routes/ingredientRoutes');
 const app = express();
 const PORT = process.env.PORT || 3007;
 
+app.use(cors());
 app.use(express.json());
 
 mongoose.connect(
@@ -35,7 +37,9 @@ app.get('/', (req, res) => {
       create: 'POST /recipes',
       getAll: 'GET /recipes',
       update: 'PUT /recipes/:id',
-      delete: 'DELETE /recipes/:id'
+      delete: 'DELETE /recipes/:id',
+      ingredients: 'GET /ingredients',
+      searchIngredients: 'GET /ingredients/name/:term'
     }
   });
 });
