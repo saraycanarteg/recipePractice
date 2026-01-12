@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import IngredientSearch from './IngredientSearch';
 
-function RecipeForm({ onSubmit, onCancel }) {
+function RecipeForm({ onSubmit, onCancel, initial }) {
   const [form, setForm] = useState({
     name: '',
     servings: 1,
@@ -99,9 +99,27 @@ function RecipeForm({ onSubmit, onCancel }) {
     }
   };
 
+  useEffect(() => {
+    if (initial) {
+      setForm({
+        name: initial.name || '',
+        servings: initial.servings || 1,
+        description: initial.description || '',
+        category: initial.category || '',
+        ingredients: (initial.ingredients || []).map(i => ({
+          productId: i.productId,
+          name: i.ingredientName || i.name || '',
+          sizeUnit: i.unit || i.sizeUnit || i.sizeUnit,
+          quantity: i.quantity || 0
+        })),
+        instructions: (initial.instructions || [{ description: '', estimatedTimeMinutes: 5 }]).map(inst => (typeof inst === 'string' ? { description: inst, estimatedTimeMinutes: 5 } : { description: inst.description, estimatedTimeMinutes: inst.estimatedTimeMinutes || 5 }))
+      });
+    }
+  }, [initial]);
+
   return (
     <div className="card max-width-3xl">
-      <h2 className="section-title">Create Recipe</h2>
+      <h2 className="section-title">{initial ? 'Edit Recipe' : 'Create Recipe'}</h2>
 
       {error && <div className="error-message">{error}</div>}
 

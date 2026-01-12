@@ -31,6 +31,13 @@ function App() {
     setView('list');
   };
 
+  const handleUpdate = async (data) => {
+    if (!selected || !selected._id) return;
+    await recipeService.update(selected._id, data);
+    await loadRecipes();
+    setView('list');
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm('Delete this recipe?')) {
       await recipeService.delete(id);
@@ -80,6 +87,15 @@ function App() {
           recipe={selected}
           onDelete={() => handleDelete(selected._id)}
           onClose={() => setView('list')}
+          onEdit={(r) => { setSelected(r); setView('edit'); }}
+        />
+      )}
+
+      {view === 'edit' && selected && (
+        <RecipeForm
+          initial={selected}
+          onSubmit={handleUpdate}
+          onCancel={() => setView('list')}
         />
       )}
     </div>

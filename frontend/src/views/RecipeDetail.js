@@ -1,11 +1,16 @@
 import React from 'react';
 
-function RecipeDetail({ recipe, onDelete, onClose }) {
+function RecipeDetail({ recipe, onDelete, onClose, onEdit }) {
   return (
     <div className="card max-width-3xl">
       <div className="detail-header">
         <h2 className="detail-title">{recipe.name}</h2>
-        <button onClick={onClose} className="close-button">×</button>
+        <div style={{display: 'flex', gap: '0.5rem'}}>
+          {onEdit && (
+            <button onClick={() => onEdit(recipe)} className="btn btn-secondary">Edit</button>
+          )}
+          <button onClick={onClose} className="close-button">×</button>
+        </div>
       </div>
 
       <div className="detail-grid">
